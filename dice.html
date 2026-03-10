@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pocket Dice</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #666666;
+            --accent: #3b82f6;
+            --accent-active: #2563eb;
+            --combo-color: #22c55e;
+            --combo-active: #16a34a;
+            --history-bg: #252525;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .display-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+        }
+
+        #formula {
+            font-size: 1.2rem;
+            color: var(--combo-color);
+            font-weight: bold;
+            height: 1.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        #formula.visible {
+            opacity: 1;
+        }
+
+        #rollResult {
+            font-size: clamp(6rem, 25vw, 12rem);
+            font-weight: 900;
+            color: var(--text-muted);
+            transition: all 0.1s ease-out;
+            user-select: none;
+            line-height: 1;
+        }
+
+        #rollResult.active {
+            color: var(--text-main);
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+
+        #rollResult.combo-active {
+            color: var(--combo-color);
+            text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+        }
+
+        .current-set-area {
+            height: 3rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 0 1rem;
+            margin-top: 1rem;
+        }
+
+        .die-val {
+            background: var(--history-bg);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border: 1px solid #333;
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: var(--text-muted);
+            padding-left: 0.5rem;
+        }
+
+        select {
+            appearance: none;
+            background-color: #2a2a2a;
+            border: 2px solid #333;
+            color: white;
+            padding: 1rem;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            width: 100%;
+            cursor: pointer;
+            text-align: center;
+            outline: none;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.05s, background-color 0.2s;
+            box-shadow: 0 4px 0px #1d4ed8;
+            margin-top: 0.5rem;
+            min-height: 4rem;
+            letter-spacing: 0.05rem;
+        }
+
+        button.combo {
+            background-color: var(--combo-color);
+            box-shadow: 0 4px 0px #16a34a;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px transparent !important;
+        }
+
+        .shake {
+            animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="display-area">
+        <div id="formula"></div>
+        <div id="rollResult">d?</div>
+        <div id="currentSet" class="current-set-area"></div>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label for="diceSelect">Select Dice</label>
+            <select id="diceSelect">
+                <option value="20">D20</option>
+                <option value="12">D12</option>
+                <option value="10">D10</option>
+                <option value="8">D8</option>
+                <option value="6">D6</option>
+                <option value="4">D4</option>
+                <option value="100">D100</option>
+            </select>
+        </div>
+
+        <button id="rollBtn">ROLL!</button>
+    </div>
+
+    <script>
+        const rollBtn = document.getElementById('rollBtn');
+        const display = document.getElementById('rollResult');
+        const formulaDisplay = document.getElementById('formula');
+        const diceSelect = document.getElementById('diceSelect');
+        const setDisplay = document.getElementById('currentSet');
+
+        let comboTotal = 0;
+        let comboCount = 0;
+        let comboTimer = null;
+        let countdownInterval = null;
+        const COMBO_TIMEOUT = 3000; 
+
+        function updateButtonLabel(timeLeftMs) {
+            if (timeLeftMs === null) {
+                rollBtn.innerText = "ROLL!";
+                return;
+            }
+
+            let arrows = "";
+            if (timeLeftMs > 2000) {
+                arrows = ">>>";
+            } else if (timeLeftMs > 1000) {
+                arrows = ">>";
+            } else {
+                arrows = ">";
+            }
+            
+            // Mirroring the arrows for symmetry
+            const reverseArrows = arrows.split('').map(c => c === '>' ? '<' : c).join('');
+            rollBtn.innerText = `${arrows} ROLL! ${reverseArrows}`;
+        }
+
+        function startCountdown() {
+            let startTime = Date.now();
+            
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = COMBO_TIMEOUT - elapsed;
+
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    resetComboState();
+                } else {
+                    updateButtonLabel(remaining);
+                }
+            }, 100); // 100ms updates for smoother arrow transitions
+        }
+
+        function resetComboState() {
+            comboTotal = 0;
+            comboCount = 0;
+            if (comboTimer) clearTimeout(comboTimer);
+            if (countdownInterval) clearInterval(countdownInterval);
+            comboTimer = null;
+            countdownInterval = null;
+            rollBtn.classList.remove('combo');
+            formulaDisplay.classList.remove('visible');
+            display.classList.remove('combo-active');
+            updateButtonLabel(null);
+        }
+
+        diceSelect.addEventListener('change', () => {
+            resetComboState();
+            setDisplay.innerHTML = '';
+            display.innerText = 'd?';
+            display.classList.remove('active');
+        });
+
+        rollBtn.addEventListener('click', () => {
+            const max = parseInt(diceSelect.value);
+            
+            if (!comboTimer) {
+                setDisplay.innerHTML = '';
+                comboTotal = 0;
+                comboCount = 0;
+            }
+
+            if (comboTimer) clearTimeout(comboTimer);
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            display.classList.remove('active', 'shake', 'combo-active');
+            void display.offsetWidth; 
+            display.classList.add('shake');
+            
+            rollBtn.classList.add('combo');
+            updateButtonLabel(3000); // Full arrows immediately
+
+            let counter = 0;
+            const interval = setInterval(() => {
+                const tempRoll = Math.floor(Math.random() * max) + 1;
+                display.innerText = comboTotal + tempRoll;
+                counter++;
+                if (counter > 4) {
+                    clearInterval(interval);
+                    finalizeRoll(max);
+                }
+            }, 30);
+        });
+
+        function finalizeRoll(max) {
+            const newRoll = Math.floor(Math.random() * max) + 1;
+            comboTotal += newRoll;
+            comboCount++;
+
+            const pill = document.createElement('div');
+            pill.className = 'die-val';
+            pill.innerText = newRoll;
+            setDisplay.appendChild(pill);
+
+            display.innerText = comboTotal;
+            
+            if (comboCount > 1) {
+                display.classList.add('combo-active');
+                formulaDisplay.innerText = `${comboCount} x D${max}`;
+                formulaDisplay.classList.add('visible');
+            } else {
+                display.classList.add('active');
+            }
+            
+            startCountdown();
+
+            comboTimer = setTimeout(() => {
+                resetComboState();
+            }, COMBO_TIMEOUT);
+
+            // Haptic Feedback Logic
+            if (window.navigator.vibrate) {
+                window.navigator.vibrate(comboCount > 1 ? [40, 30, 40] : 50);
+            }
+        }
+    </script>
+</body>
+</html>
