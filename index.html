@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pocket Dice</title>
     <style>
+        /* Theme Definitions */
         :root {
+            /* Default: Classic Plastic */
             --bg-color: #121212;
             --card-bg: #1e1e1e;
             --text-main: #ffffff;
@@ -13,8 +15,41 @@
             --accent: #3b82f6;
             --accent-active: #2563eb;
             --combo-color: #22c55e;
-            --combo-active: #16a34a;
             --history-bg: #252525;
+            --border-color: #333;
+            --btn-text: #ffffff;
+            --shadow-color: #1d4ed8;
+            --input-bg: #252525;
+        }
+
+        body.theme-bronze {
+            --bg-color: #0f0e0d;
+            --card-bg: #1a1816;
+            --text-main: #f4ece4;
+            --text-muted: #8c7a6b;
+            --accent: #cd7f32;
+            --accent-active: #b87333;
+            --combo-color: #e6b31e;
+            --history-bg: #2d2621;
+            --border-color: #3d352e;
+            --btn-text: #1a1816;
+            --shadow-color: #7a4a1d;
+            --input-bg: #25211e;
+        }
+
+        body.theme-neon {
+            --bg-color: #080c0c; /* BG Token */
+            --card-bg: #0f1919; /* SURFACE Token */
+            --text-main: #c8fff4; /* FONT Token */
+            --text-muted: #1a2e2e; 
+            --accent: #00ff9f; /* BUTTON Token */
+            --accent-active: #00d685;
+            --combo-color: #ff3cac; /* ACCENT Token */
+            --history-bg: #162626;
+            --border-color: #00ff9f44;
+            --btn-text: #080c0c; /* Contrast for bright green buttons */
+            --shadow-color: #00ff9f;
+            --input-bg: #080c0c;
         }
 
         * {
@@ -33,6 +68,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.5s ease;
         }
 
         .display-area {
@@ -43,10 +79,11 @@
             justify-content: center;
             width: 100%;
             position: relative;
+            cursor: pointer;
         }
 
         #formula {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--combo-color);
             font-weight: bold;
             height: 1.5rem;
@@ -54,7 +91,7 @@
             opacity: 0;
             transition: opacity 0.2s;
             text-transform: uppercase;
-            letter-spacing: 0.1rem;
+            letter-spacing: 0.2rem;
         }
 
         #formula.visible {
@@ -72,12 +109,12 @@
 
         #rollResult.active {
             color: var(--text-main);
-            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            text-shadow: 0 0 25px var(--accent);
         }
 
         #rollResult.combo-active {
             color: var(--combo-color);
-            text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+            text-shadow: 0 0 25px var(--combo-color);
         }
 
         .current-set-area {
@@ -94,11 +131,16 @@
         .die-val {
             background: var(--history-bg);
             padding: 0.3rem 0.6rem;
-            border-radius: 6px;
+            border-radius: 4px;
             font-size: 0.9rem;
-            color: var(--text-muted);
-            border: 1px solid #333;
+            color: var(--accent);
+            border: 1px solid var(--border-color);
             animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        body.theme-neon .die-val {
+            color: var(--text-main);
+            box-shadow: 0 0 8px var(--accent);
         }
 
         @keyframes popIn {
@@ -110,11 +152,12 @@
             width: 100%;
             max-width: 400px;
             padding: 2rem;
-            padding-bottom: 70px; 
+            padding-bottom: 60px; 
             background: var(--card-bg);
-            border-top-left-radius: 30px;
-            border-top-right-radius: 30px;
-            box-shadow: 0 -10px 20px rgba(0,0,0,0.3);
+            border-top: 1px solid var(--border-color);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
@@ -127,51 +170,73 @@
         }
 
         label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 0.1rem;
+            letter-spacing: 2px;
             color: var(--text-muted);
             padding-left: 0.5rem;
         }
 
+        body.theme-neon label {
+            color: var(--accent);
+            opacity: 0.7;
+        }
+
         select {
             appearance: none;
-            background-color: #2a2a2a;
-            border: 2px solid #333;
-            color: white;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-main);
             padding: 1rem;
-            font-size: 1.2rem;
-            border-radius: 12px;
+            font-size: 1.1rem;
+            border-radius: 8px;
             width: 100%;
             cursor: pointer;
             text-align: center;
             outline: none;
         }
 
+        select option {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+
         button {
-            background-color: var(--accent);
-            color: white;
+            background: var(--accent);
+            color: var(--btn-text);
             border: none;
             padding: 1.2rem;
             font-size: 1.4rem;
-            font-weight: bold;
-            border-radius: 12px;
+            font-weight: 800;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.05s, background-color 0.2s;
-            box-shadow: 0 4px 0px #1d4ed8;
+            transition: all 0.1s;
+            box-shadow: 0 4px 0px var(--shadow-color);
             margin-top: 0.5rem;
             min-height: 4rem;
-            letter-spacing: 0.05rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        body.theme-neon button {
+            box-shadow: 0 0 15px var(--accent);
         }
 
         button.combo {
-            background-color: var(--combo-color);
-            box-shadow: 0 4px 0px #16a34a;
+            background: var(--combo-color);
+            box-shadow: 0 4px 0px var(--combo-active);
+        }
+
+        body.theme-neon button.combo {
+            background: var(--combo-color);
+            color: #fff;
+            box-shadow: 0 0 15px var(--combo-color);
         }
 
         button:active {
-            transform: translateY(4px);
-            box-shadow: 0 0px 0px transparent !important;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px var(--shadow-color) !important;
+            filter: brightness(1.1);
         }
 
         .shake {
@@ -184,11 +249,11 @@
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
+
     </style>
 </head>
-<body>
-
-    <div class="display-area">
+<body class="theme-bronze">
+    <div class="display-area" id="themeCycler">
         <div id="formula"></div>
         <div id="rollResult">d?</div>
         <div id="currentSet" class="current-set-area"></div>
@@ -217,6 +282,7 @@
         const formulaDisplay = document.getElementById('formula');
         const diceSelect = document.getElementById('diceSelect');
         const setDisplay = document.getElementById('currentSet');
+        const themeCycler = document.getElementById('themeCycler');
 
         let comboTotal = 0;
         let comboCount = 0;
@@ -224,42 +290,52 @@
         let countdownInterval = null;
         const COMBO_TIMEOUT = 3000; 
 
+        // Theme Cycling Logic
+        const themes = ['theme-classic', 'theme-bronze', 'theme-neon'];
+        let currentThemeIndex = 1; 
+
+        themeCycler.addEventListener('click', (e) => {
+            if (e.target.closest('.die-val')) return;
+            
+            document.body.classList.remove(themes[currentThemeIndex]);
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            if (themes[currentThemeIndex] !== 'theme-classic') {
+                document.body.classList.add(themes[currentThemeIndex]);
+            }
+
+            if (window.navigator.vibrate) window.navigator.vibrate(10);
+        });
+
         function updateButtonLabel(timeLeftMs) {
+            const baseText = "ROLL!";
+            
             if (timeLeftMs === null) {
-                rollBtn.innerText = "ROLL!";
+                rollBtn.innerText = baseText;
                 return;
             }
 
             let arrows = "";
-            if (timeLeftMs > 2000) {
-                arrows = ">>>";
-            } else if (timeLeftMs > 1000) {
-                arrows = ">>";
-            } else {
-                arrows = ">";
-            }
+            if (timeLeftMs > 2000) arrows = ">>>";
+            else if (timeLeftMs > 1000) arrows = ">>";
+            else arrows = ">";
             
-            // Mirroring the arrows for symmetry
             const reverseArrows = arrows.split('').map(c => c === '>' ? '<' : c).join('');
-            rollBtn.innerText = `${arrows} ROLL! ${reverseArrows}`;
+            rollBtn.innerText = `${arrows} ${baseText} ${reverseArrows}`;
         }
 
         function startCountdown() {
             let startTime = Date.now();
-            
             if (countdownInterval) clearInterval(countdownInterval);
-            
             countdownInterval = setInterval(() => {
                 let elapsed = Date.now() - startTime;
                 let remaining = COMBO_TIMEOUT - elapsed;
-
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
                     resetComboState();
                 } else {
                     updateButtonLabel(remaining);
                 }
-            }, 100); // 100ms updates for smoother arrow transitions
+            }, 100);
         }
 
         function resetComboState() {
@@ -284,22 +360,19 @@
 
         rollBtn.addEventListener('click', () => {
             const max = parseInt(diceSelect.value);
-            
             if (!comboTimer) {
                 setDisplay.innerHTML = '';
                 comboTotal = 0;
                 comboCount = 0;
             }
-
             if (comboTimer) clearTimeout(comboTimer);
             if (countdownInterval) clearInterval(countdownInterval);
 
             display.classList.remove('active', 'shake', 'combo-active');
             void display.offsetWidth; 
             display.classList.add('shake');
-            
             rollBtn.classList.add('combo');
-            updateButtonLabel(3000); // Full arrows immediately
+            updateButtonLabel(3000);
 
             let counter = 0;
             const interval = setInterval(() => {
@@ -324,7 +397,6 @@
             setDisplay.appendChild(pill);
 
             display.innerText = comboTotal;
-            
             if (comboCount > 1) {
                 display.classList.add('combo-active');
                 formulaDisplay.innerText = `${comboCount} x D${max}`;
@@ -334,12 +406,8 @@
             }
             
             startCountdown();
+            comboTimer = setTimeout(() => { resetComboState(); }, COMBO_TIMEOUT);
 
-            comboTimer = setTimeout(() => {
-                resetComboState();
-            }, COMBO_TIMEOUT);
-
-            // Haptic Feedback Logic
             if (window.navigator.vibrate) {
                 window.navigator.vibrate(comboCount > 1 ? [40, 30, 40] : 50);
             }
@@ -347,6 +415,3 @@
     </script>
 </body>
 </html>
-
-
-
